@@ -6,8 +6,10 @@
 #
 # Script: logNotify.py
 # Description: Search for keywords in files
-version = "v1.0"
+version = "v1.1"
 changelog = """
+Version: v1.1
+    - Fixed python not waiting for email to send before deleting file
 Version: v1.0
     - First Version of Script
     - Started Changelog
@@ -191,13 +193,13 @@ def rFile(filename):
 #  returns bool
 #####
 def wFile(filename, contents, method = 'a'):
-    try:
-        handle = open(filename,method)
-        handle.write(contents)
-        handle.close()
-        return True
-    except:
-        return False
+#    try:
+    handle = open(filename,method)
+    handle.write(contents)
+    handle.close()
+    return True
+#    except:
+#        return False
 
 #####
 # cleanExit Function
@@ -313,7 +315,9 @@ def main():
             else:
                 print(diff)
         if not diff.strip() == '':
-            subprocess.Popen('cat '+tmpFile+'.tmp | /usr/bin/mail '+email_to, shell=True)
+            print(repr(diff.strip()))
+            email = subprocess.call('cat '+tmpFile+'.tmp | /usr/bin/mail '+email_to, shell=True)
+            
     else:
         if quiet: 
             cleanExit('You gave me no output options!',1)
