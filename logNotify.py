@@ -6,8 +6,10 @@
 #
 # Script: logNotify.py
 # Description: Search for keywords in files
-version = "v1.1"
+version = "v1.2"
 changelog = """
+Version: v1.2
+    - Add option to exclude files over X filesize (KB)
 Version: v1.1
     - Fixed python not waiting for email to send before deleting file
 Version: v1.0
@@ -22,6 +24,7 @@ Version: v1.0
 search_criteria = [ 'ERROR','secondterm' ]
 watch_dir = '/var/log/'
 file_extentions = [ 'log' ]
+maxFileSize = 0 # 0 is unlimited (measured in KB)
 
 #####
 # Globals
@@ -130,6 +133,7 @@ def showHelp(full = False,msg = ''):
         print('  logNotify.py [FLAGS]')
         print('\nOptional Flags:')
         print('  -e, --email     Email Recipent of Report')
+        print('  -m, --max       Max File Size to Scan KB')
         print('  -q, --quiet     Do not show anything on screen')
         print('  -b, --basic     Show Basic Information on Matches')
         print('  -l, --lines     Show Full Lines that Match')
@@ -229,7 +233,7 @@ def cleanExit(msg = '', ErrLvl = 0):
 # parseArgs Function
 #####
 def parseArgs():
-    global email_to, quiet, basic, showLines, showLineNumber, send_email
+    global email_to, quiet, basic, showLines, showLineNumber, send_email, maxFileSize
     if arg_index('--help') or arg_index('-h'):
         showHelp(True)
     if arg_index('--version'):
@@ -240,6 +244,15 @@ def parseArgs():
         quiet = True
     if arg_index('--basic') or arg_index('-b'):
         basic = True
+    if arg_index('--max') or arg_index('-m'):
+        maxFileSize = arg_value('-m')
+        if maxFileSize == '':
+            maxFileSize = arg_value('--max')
+        try:
+            maxFileSize = int(maxFileSize)
+        except:
+            print('Max File Size is NOT numeric!')
+            maxFileSize = 0
     if arg_index('--num') or arg_index('-n'):
         showLineNumber = True
     if arg_index('--noemail'):
@@ -279,7 +292,8 @@ def main():
     files_to_check = []
     for f in os.listdir(watch_dir):
         if f.split('.')[ len(f.split('.')) - 1 ] in file_extentions:
-            files_to_check.append(f)
+            if not os.path.getsize(watch_dir + '/' + f) > maxFileSize:
+                files_to_check.append(f)
     for log in files_to_check:
         log_contents = rFile(watch_dir + log)
         for term in search_criteria:
