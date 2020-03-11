@@ -292,7 +292,7 @@ def main():
     files_to_check = []
     for f in os.listdir(watch_dir):
         if f.split('.')[ len(f.split('.')) - 1 ] in file_extentions:
-            if not os.path.getsize(watch_dir + '/' + f) > maxFileSize:
+            if not os.path.getsize(watch_dir + '/' + f) > maxFileSize or maxFileSize == 0:
                 files_to_check.append(f)
     for log in files_to_check:
         log_contents = rFile(watch_dir + log)
